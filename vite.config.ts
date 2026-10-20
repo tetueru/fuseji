@@ -61,6 +61,9 @@ export default defineConfig({
         globPatterns: ['**/*.{html,js,mjs,css,svg,webmanifest,bcmap}'],
         maximumFileSizeToCacheInBytes: 8 * 1024 * 1024,
         navigateFallback: 'index.html',
+        // 新しい版を公開したら、待たせずにすぐ切り替える（前に開いた人がずっと古い版を見続けないように）
+        skipWaiting: true,
+        clientsClaim: true,
       },
     }),
   ],
