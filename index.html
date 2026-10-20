@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="referrer" content="no-referrer" />
+    <meta name="theme-color" content="#2f5d50" />
+    <link rel="icon" href="./icon.svg" type="image/svg+xml" />
+    <title>ふせじ</title>
+    <meta name="description" content="AI に渡す前に、文章・PDF・Word の名前や住所などをかくし、AI の返事を元に戻す。処理はすべてこの端末の中で行います。" />
+    <link rel="stylesheet" href="./src/style.css" />
+  </head>
+  <body>
+    <header class="top">
+      <div class="brand">
+        <img src="./icon.svg" alt="" width="40" height="40" />
+        <div>
+          <h1>ふせじ</h1>
+          <p class="tagline">AI に渡す前に、名前や番号をかくす</p>
+        </div>
+      </div>
+      <div class="badges">
+        <span class="badge safe">🔒 入力した内容はこの端末の外に送りません</span>
+        <span class="badge" id="offline-status">準備中…</span>
+      </div>
+    </header>
+
+    <nav class="tabs" role="tablist">
+      <button role="tab" data-tab="roster" aria-selected="false">① 言葉を登録</button>
+      <button role="tab" data-tab="mask" aria-selected="true">② かくす</button>
+      <button role="tab" data-tab="restore" aria-selected="false">③ もとに戻す</button>
+    </nav>
+
+    <main>
+      <!-- ① かくす言葉の登録 -->
+      <section id="tab-roster" class="panel" hidden>
+        <p class="lead">ここに登録した言葉は、文章の中から必ず見つけてかくします。人の名前・あだ名、会社や施設の名前、地名、そのほか外に出したくない言葉を登録してください。</p>
+
+        <form id="add-form" class="card" novalidate>
+          <h2>かくす言葉を登録</h2>
+          <fieldset class="kinds">
+            <legend class="sr-only">種類</legend>
+            <label class="check"><input type="radio" name="kind" value="person" checked /> 人の名前</label>
+            <label class="check"><input type="radio" name="kind" value="org" /> 施設・会社・学校など</label>
+            <label class="check"><input type="radio" name="kind" value="place" /> 地域・場所</label>
+            <label class="check"><input type="radio" name="kind" value="word" /> その他の言葉</label>
+          </fieldset>
+          <div id="person-fields" class="grid2">
+            <label class="field">
+              <span>名前<small>姓と名の間を空ける（例：山田 太郎）。名字だけ・名前だけでもOK</small></span>
+              <input id="person-name" autocomplete="off" maxlength="30" />
+            </label>
+            <label class="field">
+              <span>呼び方・あだ名（なくてもOK）<small>「、」で区切る（例：たろちゃん、ヤマちゃん）。同じ人として同じ印になります</small></span>
+              <input id="person-aliases" autocomplete="off" />
+            </label>
+          </div>
+          <label class="field" id="term-fields" hidden>
+            <span>言葉<small>1行に1つ（「、」区切りでもOK）</small></span>
+            <textarea id="terms" rows="3" placeholder="株式会社みどり&#10;さくら病院"></textarea>
+          </label>
+          <div class="error" id="add-error" role="alert" hidden></div>
+          <p class="ok" id="add-ok" role="status" hidden></p>
+          <div class="row"><span class="spacer"></span><button class="primary" type="submit">登録する</button></div>
+        </form>
+
+        <section class="card">
+          <h2>登録済み<small id="entry-count"></small></h2>
+          <ul class="entries" id="entries"></ul>
+        </section>
+
+        <details class="card auto">
+          <summary>登録しなくても自動でかくすもの</summary>
+          <ul>
+            <li>生年月日（「生年月日：…」「…生まれ」の形。ふつうの日付はかくしません）</li>
+            <li>住所・住んでいる地域（都道府県・市区町村、「〇〇駅」「〇〇在住」「〇〇出身」など）</li>
+            <li>電話番号・メールアドレス・郵便番号・10桁以上の番号（元に戻せます）</li>
+            <li>「株式会社〇〇」「〇〇株式会社」「（株）〇〇」などの会社・法人の名前</li>
+            <li>「〇〇病院」「〇〇小学校」「〇〇クリニック」などの施設名、「〇〇先生」などの肩書きつきの名前</li>
+            <li>「〇〇さん」「氏名：〇〇」「宛名：〇〇」「差出人：〇〇」などの形の名前（「② かくす」のチェックが入っているとき）</li>
+          </ul>
+          <p class="note">形から見つけるものは、見落としや、かくしすぎがあります。大事な名前は登録してください。</p>
+        </details>
+
+        <div class="store">
+          <label class="check"><input type="checkbox" id="remember" /> この端末に登録を覚えておく</label>
+          <p class="note" id="remember-note"></p>
+          <div class="row">
+            <button class="ghost" id="export">登録をファイルに書き出す</button>
+            <button class="ghost" id="import">ファイルから読み込む</button>
+            <input type="file" id="import-file" accept=".json,application/json" hidden />
+            <button class="danger" id="clear-roster">登録を全部消す</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ② かくす -->
+      <section id="tab-mask" class="panel">
+        <details class="card guide" id="guide" open>
+          <summary>はじめての方へ — 使い方（3ステップ）</summary>
+          <ol>
+            <li><strong>文章を入れる</strong>：AI（ChatGPT・Claude・Gemini など）に渡したい文章を貼り付けるか、PDF・Word のファイルを置きます。</li>
+            <li><strong>「かくす」を押す</strong>：名前・住所・電話番号・生年月日などが <code>[[PERSON_ID:…]]</code> のような印に置き換わります。色の付いた表示で、かくし忘れがないか確かめてから「コピーする」で AI に貼り付けます。</li>
+            <li><strong>AI の返事を「③ もとに戻す」に貼る</strong>：印が元の名前などに戻ります。</li>
+          </ol>
+          <p class="note">よく出てくる人や会社の名前は「① 言葉を登録」に入れておくと、確実にかくせます。入れた文章はこの画面の外に出ません。</p>
+          <div class="row"><button type="button" class="ghost" id="try-sample">見本の文章で試してみる</button></div>
+        </details>
+        <div id="drop" class="drop">
+          <p><strong>ファイルをここに置く</strong> か <button class="link" id="pick">ファイルを選ぶ</button></p>
+          <p class="note">文字（.txt）・PDF・Word（.docx）。中身はこの画面の中だけで読みます</p>
+          <input type="file" id="file" accept=".txt,.csv,.md,.pdf,.docx,text/plain,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document" hidden />
+        </div>
+        <label class="field">
+          <span>かくす前の文章<small id="input-count"></small></span>
+          <textarea id="input" rows="10" placeholder="ここに文章を貼り付けるか、上にファイルを置いてください"></textarea>
+        </label>
+        <div class="row">
+          <label class="check"><input type="checkbox" id="guess" checked /> 登録していない「〇〇さん」「氏名：〇〇」もかくす</label>
+          <label class="check"><input type="checkbox" id="ai-note" checked /> AI への注意書きをつける<small class="note">（印を書き換えないよう AI に頼む一文）</small></label>
+          <span class="spacer"></span>
+          <button class="ghost" id="clear-all">全部消す</button>
+          <button class="primary" id="do-mask">かくす</button>
+        </div>
+        <p class="error" id="mask-error" role="alert" hidden></p>
+
+        <div id="mask-result" hidden>
+          <div class="summary" id="summary"></div>
+          <div class="warn" id="flags" hidden></div>
+          <h2>確かめる<small>色の付いたところがかくした部分です。かくし忘れがないか読んでください（印に触れると元の言葉が出ます）</small></h2>
+          <div class="preview" id="preview"></div>
+          <h2>AI に渡す文章</h2>
+          <textarea id="output" rows="8" readonly></textarea>
+          <div class="row">
+            <span class="note">AI の返事をもらったら「③ もとに戻す」へ。画面を閉じたり読み込み直したりすると戻せなくなります。</span>
+            <span class="spacer"></span>
+            <button class="primary" id="copy-output">コピーする</button>
+          </div>
+          <details class="map">
+            <summary>対応表を見る（どの印がどの言葉か）</summary>
+            <table><tbody id="map-body"></tbody></table>
+          </details>
+        </div>
+      </section>
+
+      <!-- ③ もとに戻す -->
+      <section id="tab-restore" class="panel" hidden>
+        <p class="lead" id="restore-lead"></p>
+        <label class="field">
+          <span>AI の返事<small>そのまま貼り付けてください</small></span>
+          <textarea id="reply" rows="10" placeholder="[[PERSON_ID:…]] のような印が入った文章"></textarea>
+        </label>
+        <div class="row">
+          <span class="spacer"></span>
+          <button class="primary" id="do-restore">もとに戻す</button>
+        </div>
+        <div class="warn" id="restore-warn" hidden></div>
+        <div id="restore-result" hidden>
+          <h2>元の名前に戻した文章</h2>
+          <textarea id="restored" rows="10" readonly></textarea>
+          <div class="row">
+            <span class="spacer"></span>
+            <button class="primary" id="copy-restored">コピーする</button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <p>ふせじは、文章を読むのも、かくすのも、元に戻すのも、すべてこの端末の中で行います。文章・ファイル・対応表はどこにも送らず、保存もしません（登録した言葉だけは「覚えておく」を選んだときこの端末に残ります）。</p>
+      <p>名前を見落とすことはありえます。AI に渡す前に、必ず「確かめる」で読んでください。</p>
+    </footer>
+
+
+    <script type="module" src="./src/main.ts"></script>
+  </body>
+</html>
