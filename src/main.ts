@@ -54,6 +54,11 @@ if ('serviceWorker' in navigator && import.meta.env.PROD) {
       }
     },
   });
+  // 準備の途中で読み込み直したときなど、上の知らせが来ないことがあるので、準備ができたら必ず表示を変える
+  void navigator.serviceWorker.ready.then(() => {
+    offlineReady = true;
+    updateOfflineStatus();
+  });
 } else {
   $('offline-status').textContent = '（開発中の表示）';
 }
