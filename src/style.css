@@ -181,3 +181,8 @@ footer p { margin: 0 0 6px; }
   .grid2 { grid-template-columns: 1fr; }
   nav.tabs button { padding: 10px 8px; font-size: 0.92rem; }
 }
+
+footer p.support[hidden] { display: none; }
+footer p.support { margin-top: 10px; }
+#support-link { display: inline-block; font-weight: 700; color: var(--accent-ink); background: var(--accent); padding: 2px 12px; border-radius: 999px; text-decoration: none; }
+#support-link:hover { filter: brightness(1.08); }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { safeAds } from './ads';
+import { safeAds, safeUrl } from './ads';
 
 describe('safeAds', () => {
   it('https のリンクだけ通し、変な画像の指定ははじく', () => {
@@ -15,5 +15,14 @@ describe('safeAds', () => {
         { title: '画像あり', url: 'https://example.com', image: 'ads/book.png' },
       ]).map((a) => a.title),
     ).toEqual(['本', '画像あり']);
+  });
+});
+
+describe('safeUrl', () => {
+  it('https だけ通す', () => {
+    expect(safeUrl('https://ofuse.me/xxxx')).toBe('https://ofuse.me/xxxx');
+    expect(safeUrl('http://ofuse.me/xxxx')).toBeNull();
+    expect(safeUrl('javascript:alert(1)')).toBeNull();
+    expect(safeUrl('')).toBeNull();
   });
 });

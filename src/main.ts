@@ -1,5 +1,5 @@
 import { registerSW } from 'virtual:pwa-register';
-import { ADS, safeAds } from './ads';
+import { ADS, safeAds, safeUrl, SUPPORT_URL } from './ads';
 import type { ReviewFlag } from './anonymizer';
 import { MAX_TEXT_CHARS, readFileText } from './files';
 import {
@@ -316,6 +316,13 @@ renderRoster();
     list.append(li);
   }
   $('pr').hidden = ads.length === 0;
+
+  const support = safeUrl(SUPPORT_URL);
+  if (support) {
+    const a = $<HTMLAnchorElement>('support-link');
+    a.href = support;
+    $('support').hidden = false;
+  }
 }
 
 // ---------- 使い方・見本 ----------

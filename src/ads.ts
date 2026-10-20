@@ -20,6 +20,18 @@ export type Ad = {
 
 export const ADS: Ad[] = [];
 
+/** 応援（投げ銭）のページ（OFUSE など）。空なら「応援する」は表示しない */
+export const SUPPORT_URL = '';
+
+/** https のリンクだけを使う */
+export function safeUrl(url: string): string | null {
+  try {
+    return new URL(url).protocol === 'https:' ? url : null;
+  } catch {
+    return null;
+  }
+}
+
 /** 安全なリンクだけにする（https 以外や、変な書き方は表示しない） */
 export function safeAds(ads: Ad[]): Ad[] {
   return ads.filter((ad) => {
