@@ -160,6 +160,20 @@ details.guide code { font-family: ui-monospace, Consolas, monospace; font-size: 
 details.auto ul { margin: 0; padding-left: 1.2em; }
 .store { display: flex; flex-direction: column; gap: 8px; padding: 14px; border-radius: 10px; border: 1px solid var(--line); }
 
+aside.pr { max-width: 1040px; margin: 0 auto 24px; padding: 0 16px; }
+aside.pr[hidden] { display: none; }
+.pr-head { margin: 0 0 8px; font-size: 0.85rem; color: var(--muted); display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.pr-badge { font-size: 0.7rem; font-weight: 700; border: 1px solid var(--muted); border-radius: 4px; padding: 0 5px; }
+#pr-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
+#pr-list a {
+  display: flex; gap: 10px; align-items: center; text-decoration: none; color: var(--ink);
+  background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; height: 100%;
+}
+#pr-list a:hover { border-color: var(--accent); }
+#pr-list img { width: 56px; height: 56px; object-fit: contain; flex-shrink: 0; border-radius: 6px; }
+#pr-list span { display: flex; flex-direction: column; min-width: 0; }
+#pr-list small { color: var(--muted); font-size: 0.8rem; }
+
 footer { padding-bottom: 32px; color: var(--muted); font-size: 0.85rem; border-top: 1px solid var(--line); padding-top: 16px; }
 footer p { margin: 0 0 6px; }
 

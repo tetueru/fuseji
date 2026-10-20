@@ -1,4 +1,5 @@
 import { registerSW } from 'virtual:pwa-register';
+import { ADS, safeAds } from './ads';
 import type { ReviewFlag } from './anonymizer';
 import { MAX_TEXT_CHARS, readFileText } from './files';
 import {
@@ -282,6 +283,40 @@ $<HTMLInputElement>('import-file').addEventListener('change', async (e) => {
 });
 
 renderRoster();
+
+// ---------- 広告（PR） ----------
+// ただのリンクだけを出す。広告会社のスクリプトは読み込まない（src/ads.ts の決まりを参照）
+{
+  const ads = safeAds(ADS);
+  const list = $('pr-list');
+  for (const ad of ads) {
+    const li = document.createElement('li');
+    const a = document.createElement('a');
+    a.href = ad.url;
+    a.target = '_blank';
+    a.rel = 'sponsored noopener noreferrer';
+    if (ad.image) {
+      const img = document.createElement('img');
+      img.src = ad.image;
+      img.alt = '';
+      img.loading = 'lazy';
+      a.append(img);
+    }
+    const text = document.createElement('span');
+    const title = document.createElement('strong');
+    title.textContent = ad.title;
+    text.append(title);
+    if (ad.note) {
+      const note = document.createElement('small');
+      note.textContent = ad.note;
+      text.append(note);
+    }
+    a.append(text);
+    li.append(a);
+    list.append(li);
+  }
+  $('pr').hidden = ads.length === 0;
+}
 
 // ---------- 使い方・見本 ----------
 const GUIDE_KEY = 'fuseji.guideClosed';
