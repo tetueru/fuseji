@@ -18,7 +18,27 @@ export type Ad = {
   image?: string;
 };
 
-export const ADS: Ad[] = [];
+/** 楽天アフィリエイトのテキストリンク（商品リンク作成ページの href と同じ形） */
+const RAKUTEN_ID = '58a5c3c1.0ace62ef.58a5c3c2.3720c868';
+const rakuten = (itemUrl: string) => `https://hb.afl.rakuten.co.jp/ichiba/${RAKUTEN_ID}/?pc=${encodeURIComponent(itemUrl)}&link_type=text`;
+
+export const ADS: Ad[] = [
+  {
+    title: 'のぞき見防止フィルター',
+    note: 'ノートパソコンの画面を横から見えにくくする（楽天市場）',
+    url: rakuten('https://item.rakuten.co.jp/casemania55/free-private-two/'),
+  },
+  {
+    title: '家庭用シュレッダー',
+    note: '名前や住所の入った紙を細かく切る（楽天市場）',
+    url: rakuten('https://item.rakuten.co.jp/sanwadirect/400-psd030/'),
+  },
+  {
+    title: '本『生成AI最速仕事術』',
+    note: 'AI を仕事に使うコツ（楽天ブックス）',
+    url: rakuten('https://item.rakuten.co.jp/book/18239273/'),
+  },
+];
 
 /** 応援（投げ銭）のページ（OFUSE など）。空なら「応援する」は表示しない */
 export const SUPPORT_URL = '';
